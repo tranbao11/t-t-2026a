@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <title>Tết Giáp Ngọ 2026</title>
+    <style>
+        body { margin: 0; background: #000; overflow: hidden; color: white; font-family: 'Arial', sans-serif; }
+        canvas { display: block; position: absolute; top: 0; left: 0; }
+        
+        #gui {
+            position: absolute; width: 100%; text-align: center; top: 50%;
+            transform: translateY(-50%); z-index: 100; transition: all 1s;
+        }
+
+        .lantern {
+            position: absolute; top: -10px; width: 50px; height: 45px;
+            background: #d40000; border-radius: 50% / 20%;
+            box-shadow: 0 0 30px #ff4500; animation: swing 3s infinite ease-in-out;
+            z-index: 50;
+        }
+        .lantern::before { content: "福"; position: absolute; top: 8px; left: 15px; color: gold; font-size: 18px; }
+        .lantern::after { content: ""; position: absolute; bottom: -15px; left: 23px; width: 3px; height: 15px; background: gold; }
+        
+        @keyframes swing {
+            0%, 100% { transform: rotate(-4deg); transform-origin: top center; }
+            50% { transform: rotate(4deg); transform-origin: top center; }
+        }
+
+        #startBtn {
+            padding: 20px 50px; background: linear-gradient(45deg, #ff0000, #ffd700);
+            color: #fff; border: 3px solid #fff; cursor: pointer; 
+            font-size: 24px; border-radius: 50px; font-weight: bold;
+            text-transform: uppercase; box-shadow: 0 0 30px rgba(255, 0, 0, 0.8);
+        }
+
+        #envelope {
+            width: 120px; height: 160px; background: #d40000; margin: 0 auto;
+            border-radius: 10px; cursor: pointer; display: none; align-items: center; 
+            justify-content: center; font-size: 55px; border: 2px solid #ffd700;
+            box-shadow: 0 0 25px gold; animation: float 3s infinite ease-in-out;
+        }
+
+        #msg {
+            display: none; font-size: 35px; font-weight: bold; text-transform: uppercase;
+            text-shadow: 0 0 20px #ff0000, 0 0 40px gold; animation: fadeIn 2.5s ease-in forwards;
+        }
+        #sub-msg { font-size: 20px; color: #fff; text-transform: none; margin-top: 15px; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-20px); } }
+        .highlight { color: #ffd700; display: block; margin-top: 10px; }
+    </style>
+</head>
+<body>
+
+    <div class="lantern" style="left: 5%;"></div>
+    <div class="lantern" style="right: 5%;"></div>
+
+    <div id="gui">
+        <button id="startBtn" onclick="startShow()">BẤM ĐỂ ĐỐT PHÁO HOA 🎇</button>
+        <div id="envelope" onclick="showLetter()">🧧</div>
+        <div id="msg">
+            TẾT BÌNH AN 🧧
+            <div id="sub-msg">
+                Chúc mừng năm mới Giáp Ngọ 2026!<br>
+                Chúc bạn vạn sự như ý, sức khỏe dồi dào,<br>
+                tiền vào như nước, hạnh phúc đong đầy!<br>
+                <span class="highlight">Học tập thật tốt 📚</span>
+                <span class="highlight">Càng ngày càng xinh đẹp nha! ❤️❤️</span>
+            </div>
+        </div>
+    </div>
+
+    <canvas id="canvas"></canvas>
+
+    <script>
+        const canvas = document.getElementById('canvas');
+        const ctx = canvas.getContext('2d');
+        const startBtn = document.getElementById('startBtn');
+        const envelope = document.getElementById('envelope');
+        const msg = document.getElementById('msg');
+        const gui = document.getElementById('gui');
+
+        // --- KHAI BÁO ÂM THANH ---
+        const nhacNen = new Audio('nhạc.mp3'); 
+        const tiengPhao = new Audio('tieng.mp3'); 
+
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+
+        let particles = [];
+        let stars = [];
+        let isRunning = false;
+
+        function initStars() {
+            stars = [];
+            for (let i = 0; i < 200; i++) {
+                stars.push({ x: Math.random() * canvas.width, y: Math.random() * canvas.height, size: Math.random() * 1.5, blink: Math.random() * 0.1 });
+            }
+        }
+
+        class Particle {
+            constructor(x, y, color, velocity) {
+                this.x = x; this.y = y; this.color = color; this.velocity = velocity;
+                this.alpha = 1; this.friction = 0.95; this.gravity = 0.15;
+                this.decay = Math.random() * 0.015 + 0.01;
+            }
+            draw() {
+                ctx.save(); ctx.globalAlpha = this.alpha; ctx.beginPath();
+                ctx.arc(this.x, this.y, 2.5, 0, Math.PI * 2);
+                ctx.fillStyle = this.color; ctx.shadowBlur = 10; ctx.fill(); ctx.restore();
+            }
+            update() {
+                this.velocity.x *= this.friction; this.velocity.y *= this.friction;
+                this.velocity.y += this.gravity; this.x += this.velocity.x;
+                this.y += this.velocity.y; this.alpha -= this.decay;
+            }
+        }
+
+        function createFirework() {
+            const x = Math.random() * canvas.width;
+            const y = Math.random() * (canvas.height * 0.4) + 100;
+            const colors = ['#FFD700', '#FF4500', '#00FFCC', '#FF00FF', '#FFFFFF'];
+            const color = colors[Math.floor(Math.random() * colors.length)];
+            
+            for (let i = 0; i < 80; i++) {
+                const angle = (Math.PI * 2 / 80) * i;
+                const speed = Math.random() * 12 + 2;
+                particles.push(new Particle(x, y, color, { x: Math.cos(angle) * speed, y: Math.sin(angle) * speed }));
+            }
+            
+            // CHỈNH TIẾNG PHÁO CỰC NHỎ (0.1) ĐỂ KHÔNG ÁT TIẾNG NHẠC
+            let tiengNo = tiengPhao.cloneNode();
+            tiengNo.volume = 0.1; 
+            tiengNo.play().catch(e => {});
+        }
+
+        function animate() {
+            requestAnimationFrame(animate);
+            ctx.fillStyle = 'rgba(0, 0, 0, 0.2)';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            stars.forEach(s => {
+                ctx.globalAlpha = Math.abs(Math.sin(Date.now() * s.blink * 0.1));
+                ctx.fillStyle = "white";
+                ctx.fillRect(s.x, s.y, s.size, s.size);
+            });
+
+            ctx.globalAlpha = 1;
+            particles.forEach((p, i) => {
+                if (p.alpha > 0) { p.update(); p.draw(); }
+                else { particles.splice(i, 1); }
+            });
+
+            if (isRunning && Math.random() < 0.05) createFirework();
+        }
+
+        function startShow() {
+            startBtn.style.display = 'none';
+            envelope.style.display = 'flex';
+            isRunning = true;
+            
+            // ÂM LƯỢNG NHẠC NỀN (0.7)
+            nhacNen.loop = true;
+            nhacNen.volume = 0.7; 
+            nhacNen.play().catch(e => {});
+            
+            animate();
+        }
+
+        function showLetter() {
+            envelope.style.display = 'none';
+            msg.style.display = 'block';
+            gui.style.top = '25%'; 
+        }
+
+        initStars();
+        window.onresize = () => { canvas.width = window.innerWidth; canvas.height = window.innerHeight; initStars(); };
+    </script>
+</body>
+</html>
